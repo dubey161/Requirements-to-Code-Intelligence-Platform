@@ -4,6 +4,7 @@
  */
 
 const STORAGE_KEY = 'ai_platform_auth'
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 
 function getToken() {
   try {
@@ -22,7 +23,7 @@ export async function apiFetch(path, options = {}) {
     ...(options.headers ?? {}),
   }
 
-  const res = await fetch(path, { ...options, headers })
+  const res = await fetch(BASE_URL + path, { ...options, headers })
 
   if (res.status === 401) {
     localStorage.removeItem(STORAGE_KEY)
@@ -35,7 +36,7 @@ export async function apiFetch(path, options = {}) {
 
 /** POST to a public auth endpoint (no token). */
 export async function authPost(path, body) {
-  const res = await fetch(path, {
+  const res = await fetch(BASE_URL + path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
