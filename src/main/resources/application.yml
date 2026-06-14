@@ -2,9 +2,9 @@ spring:
   application:
     name: engineering-productivity-platform
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/codex}
-    username: ${DATABASE_USERNAME:ved}
-    password: ${DATABASE_PASSWORD:admin123}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
   jpa:
     open-in-view: false
     show-sql: true
