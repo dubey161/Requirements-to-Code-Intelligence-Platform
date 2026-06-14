@@ -1,0 +1,99 @@
+spring:
+  application:
+    name: engineering-productivity-platform
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/codex}
+    username: ${DATABASE_USERNAME:ved}
+    password: ${DATABASE_PASSWORD:admin123}
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+  data:
+    elasticsearch:
+      repositories:
+        enabled: ${ELASTICSEARCH_ENABLED:false}
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      repositories:
+        enabled: false
+
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
+
+management:
+  health:
+    elasticsearch:
+      enabled: ${ELASTICSEARCH_HEALTH_ENABLED:false}
+    redis:
+      enabled: ${REDIS_HEALTH_ENABLED:false}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+
+jira:
+  base-url: ${JIRA_BASE_URL:}
+  email: ${JIRA_EMAIL:}
+  api-token: ${JIRA_API_TOKEN:}
+  acceptance-criteria-field: ${JIRA_AC_FIELD:customfield_10016}
+
+github:
+  token: ${GITHUB_TOKEN:}
+  owner: ${GITHUB_OWNER:}
+  repo: ${GITHUB_REPO:}
+  base-branch: ${GITHUB_BASE_BRANCH:main}
+  webhook:
+    secret: ${GITHUB_WEBHOOK_SECRET:}
+    enabled: ${GITHUB_WEBHOOK_ENABLED:true}
+
+codegen:
+  base-package: ${CODEGEN_BASE_PACKAGE:com.example.generated}
+
+analyzer:
+  # provider: rule-based | gemini | groq | ollama
+  # Set to "gemini" and supply GEMINI_API_KEY for LLM analysis (free tier)
+  # Set to "groq"   and supply GROQ_API_KEY   for LLM analysis (free tier)
+  # Set to "ollama" for fully local, no-cost analysis (requires ollama running)
+  provider: ${ANALYZER_PROVIDER:rule-based}
+  fallback-to-rule-based: ${ANALYZER_FALLBACK:true}
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:gemini-2.0-flash}
+    timeout-seconds: 30
+  groq:
+    api-key: ${GROQ_API_KEY:}
+    model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+    timeout-seconds: 30
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    model: ${OLLAMA_MODEL:llama3.2}
+    timeout-seconds: 120
+
+jwt:
+  # Must be a Base64-encoded key of at least 32 bytes (256 bits) for HS256
+  # Generate a strong key in production: openssl rand -base64 32
+  secret: ${JWT_SECRET:Y2hhbmdlLW1lLWluLXByb2R1Y3Rpb24tdGhpcy1pcy1kZXYtb25seS11bnNlY3VyZS1rZXk=}
+  access-token-expiration: ${JWT_ACCESS_EXPIRY:86400000}    # 24 hours in ms
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRY:604800000} # 7 days in ms
+
+info:
+  application:
+    name: AI Engineering Productivity Platform
+    description: Requirement-to-implementation intelligence

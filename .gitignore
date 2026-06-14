@@ -1,0 +1,23 @@
+# IDE
+.DS_Store
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Credentials — NEVER commit these
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# Build output
+target/
+logs/
+*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/

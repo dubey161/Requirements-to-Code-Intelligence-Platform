@@ -1,0 +1,103 @@
+services:
+
+  # ── Infrastructure ────────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB:       codex
+      POSTGRES_USER:     platform
+      POSTGRES_PASSWORD: platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform -d codex"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.4
+    profiles: ["full"]
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+
+  redis:
+    image: redis:7.4-alpine
+    profiles: ["full"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  # ── Application ───────────────────────────────────────────────────────────────
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL:      jdbc:postgresql://postgres:5432/codex
+      DATABASE_USERNAME: platform
+      DATABASE_PASSWORD: platform
+
+      JWT_SECRET:        ${JWT_SECRET}
+      JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY:-86400000}
+      JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-604800000}
+
+      ANALYZER_PROVIDER: ${ANALYZER_PROVIDER:-rule-based}
+      ANALYZER_FALLBACK:  ${ANALYZER_FALLBACK:-true}
+      GEMINI_API_KEY:     ${GEMINI_API_KEY:-}
+      GROQ_API_KEY:       ${GROQ_API_KEY:-}
+      OLLAMA_BASE_URL:    ${OLLAMA_BASE_URL:-}
+
+      GITHUB_TOKEN:       ${GITHUB_TOKEN:-}
+      GITHUB_OWNER:       ${GITHUB_OWNER:-}
+      GITHUB_REPO:        ${GITHUB_REPO:-}
+      GITHUB_BASE_BRANCH: ${GITHUB_BASE_BRANCH:-main}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+
+      JIRA_BASE_URL:   ${JIRA_BASE_URL:-}
+      JIRA_EMAIL:      ${JIRA_EMAIL:-}
+      JIRA_API_TOKEN:  ${JIRA_API_TOKEN:-}
+
+      ELASTICSEARCH_ENABLED:        false
+      ELASTICSEARCH_HEALTH_ENABLED: false
+      REDIS_HEALTH_ENABLED:         false
+      SHOW_SQL:                     false
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 45s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  elasticsearch-data:
+  redis-data:
